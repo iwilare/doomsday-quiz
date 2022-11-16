@@ -53,6 +53,7 @@ function App() {
     showSolution: false,
     lastClicked: null as (null | number),
     isCorrect: null as (null | boolean),
+    showTables: false,
   })
   function refresh() {
     setState({
@@ -60,33 +61,37 @@ function App() {
       date: getRandomDate(), showSolution: false, isCorrect: null
     })
   }
+  const maybeShowModulus = (v: number) => v >= 7 ? <> = {v - 7}</> : <></>
   const date = new Date(state.date.y, state.date.m - 1, state.date.d)
-  const name = date.toLocaleDateString('default', { month: 'long', year: 'numeric', day: 'numeric' })
+  const name = date.toLocaleDateString('en-uk', { month: 'long', year: 'numeric', day: 'numeric' })
   const correctDay = date.getDay();
-  console.log(state.date, correctDay, state.isCorrect)
+
+  let [y, m, d] = [state.date.y, state.date.m, state.date.d]
+  y += [1, 2].includes(m) ? -1 : 0
+  const [c, u, z] = [Math.floor(y / 100), Math.floor(y / 10) % 10, y % 10]
+
+  const dateComponent = MONTHS_DIFF[m - 1] + (d % 7)
+  const yearComponent = DECADE[u] + YDIGIT[z] + (u % 2 != 0 && LEAPSX.includes(z) ? 1 : 0)
+  const fullYearComponent = CENTURY[c % 4] + yearComponent
+  const resultComponent = fullYearComponent + dateComponent
+
   return (
-    <mui.Grid
-      container
-      spacing={0}
-      direction="column"
-      alignItems="center"
-      style={{ minHeight: '100vh' }}
-    >
-      <mui.DialogTitle variant="h3" color={
-        state.isCorrect === null ? 'default'
-        : state.isCorrect ? 'primary' : 'error'}>
+    <mui.Stack alignItems="center" spacing={1}>
+      <mui.DialogTitle variant="h3" padding={0}
+          color={state.isCorrect === null ? 'default'
+               : state.isCorrect ? 'primary' : 'error'}>
         {name}
       </mui.DialogTitle>
-      <mui.DialogTitle variant="h5">{state.won} / {state.did}</mui.DialogTitle>
-      {<div>{[0, 1, 2, 3, 4, 5, 6].map(i =>
+      <mui.Typography variant="h5">{state.won} / {state.did}</mui.Typography>
+      {<mui.Stack spacing={0.5} direction="row">{[0, 1, 2, 3, 4, 5, 6].map(i =>
         <mui.Button
           variant="contained"
           key={i}
           color={
             !state.showSolution ? 'primary'
-            : i == correctDay ? 'success'
-            : i == state.lastClicked ? 'error' :
-            'primary'}
+              : i == correctDay ? 'success'
+                : i == state.lastClicked ? 'error' :
+                  'primary'}
           onClick={e => {
             if (state.showSolution) {
               refresh();
@@ -103,51 +108,58 @@ function App() {
             })
           }}>
           {i}
-        </mui.Button>)}</div>}
-      {
-        (() => {
-          let [y, m, d] = [state.date.y, state.date.m, state.date.d]
-          y += [1, 2].includes(m) ? -1 : 0
-          const [c, u, z] = [Math.floor(y / 100), Math.floor(y / 10) % 10, y % 10]
-
-          const dateComponent = MONTHS_DIFF[m - 1] + (d % 7)
-          const yearComponent = DECADE[u] + YDIGIT[z] + (u % 2 != 0 && LEAPSX.includes(z) ? 1 : 0)
-          const fullYearComponent = CENTURY[c % 4] + yearComponent
-
-          return !state.showSolution ? [] :
-            <div>
-              <mui.Table>
-                <mui.TableRow>
-                  <mui.TableCell>Date:</mui.TableCell>
-                  <mui.TableCell>{MONTHS[m - 1]} {d}</mui.TableCell>
-                  <mui.TableCell>{MONTHS_DIFF[m - 1]} + {d % 7} = {dateComponent}</mui.TableCell>
-                </mui.TableRow>
-
-                <mui.TableRow>
-                  <mui.TableCell>Year:</mui.TableCell>
-                  <mui.TableCell>{u * 10 + z}</mui.TableCell>
-                  <mui.TableCell>{DECADE[u]} + {
-                    YDIGIT[z]} + {(u % 2 != 0 && LEAPSX.includes(z) ? 1 : 0)} = {yearComponent}</mui.TableCell>
-                </mui.TableRow>
-
-                <mui.TableRow>
-                  <mui.TableCell>Full year:</mui.TableCell>
-                  <mui.TableCell>{y}</mui.TableCell>
-                  <mui.TableCell>{CENTURY[c % 4]} + {yearComponent} = {fullYearComponent} </mui.TableCell>
-                </mui.TableRow>
-
-                <mui.TableRow>
-                  <mui.TableCell>Result:</mui.TableCell>
-                  <mui.TableCell></mui.TableCell>
-                  <mui.TableCell>{fullYearComponent} + {dateComponent} = {fullYearComponent + dateComponent} = {(fullYearComponent + dateComponent) % 7}</mui.TableCell>
-                </mui.TableRow>
-
-              </mui.Table>
-              <mui.Button onClick={refresh}>Continue</mui.Button></div>
-        })()
+        </mui.Button>)}</mui.Stack>}
+      {!state.showSolution ? [] :
+        <>
+          <div>
+            <mui.Table size="medium">
+              <mui.TableRow>
+                <mui.TableCell>Date:</mui.TableCell>
+                <mui.TableCell>{MONTHS[m - 1]} {d}</mui.TableCell>
+                <mui.TableCell>{MONTHS_DIFF[m - 1]} + {d % 7} = {dateComponent}{maybeShowModulus(dateComponent)}</mui.TableCell>
+              </mui.TableRow>
+              <mui.TableRow>
+                <mui.TableCell>Year:</mui.TableCell>
+                <mui.TableCell>{y}</mui.TableCell>
+                <mui.TableCell>{CENTURY[c % 4]} + {DECADE[u]} + {
+                  YDIGIT[z]} + {(u % 2 != 0 && LEAPSX.includes(z) ? 1 : 0)} = {fullYearComponent}{maybeShowModulus(fullYearComponent)} </mui.TableCell>
+              </mui.TableRow>
+              <mui.TableRow>
+                <mui.TableCell>Result:</mui.TableCell>
+                <mui.TableCell></mui.TableCell>
+                <mui.TableCell>{dateComponent % 7} + {fullYearComponent % 7} = {resultComponent}{maybeShowModulus(resultComponent)}</mui.TableCell>
+              </mui.TableRow>
+            </mui.Table>
+          </div>
+          <mui.Button onClick={refresh}>Continue</mui.Button>
+        </>
       }
-    </mui.Grid >
-  )
+      <mui.FormControlLabel
+        control={<mui.Switch />}
+        checked={state.showTables}
+        onChange={(_, k) => setState({ ...state, showTables: k })}
+        label="Show tables" />
+      {state.showTables ?
+        <mui.Stack direction="row">
+          <mui.Card>
+            <mui.Table size="small">
+              {DECADE.map((d, i) => <mui.TableRow>
+                <mui.TableCell>{_.padStart((i * 10).toString(), 2, '0')}</mui.TableCell>
+                <mui.TableCell>{d}</mui.TableCell>
+              </mui.TableRow>)}
+            </mui.Table>
+          </mui.Card>
+          <mui.Card>
+            <mui.Table size="small">
+              {MONTHS_DIFF.map((d, i) => <mui.TableRow>
+                <mui.TableCell align="right">{MONTHS[i]}</mui.TableCell>
+                <mui.TableCell align="right">{d}</mui.TableCell>
+              </mui.TableRow>)}
+            </mui.Table>
+          </mui.Card>
+        </mui.Stack>
+        : <></>}
+    </mui.Stack>)
 }
 
 ReactDOM.createRoot(document.getElementById('root') as HTMLElement).render(
