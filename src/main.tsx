@@ -8,13 +8,6 @@ const months = (isLeap: boolean) => [31, isLeap ? 29 : 28, 31, 30, 31, 30, 31, 3
 const isLeap = (y: number) => y % 4 == 0 && y % 100 != 0 || y % 400 == 0
 const randomDate = (start: Date, end: Date) => new Date(start.getTime() + Math.random() * (end.getTime() - start.getTime()))
 
-function getRandomDate() {
-  const y = _.random(1900, 2100, false)
-  const m = _.random(1, 12, false)
-  const d = _.random(1, months(isLeap(y))[m - 1], false)
-  return { y: y, m: m, d: d };
-}
-
 const DECADE = [0, 5, 4, 2, 1, 6, 5, 3, 2, 0]
 const YDIGIT = [0, 1, 2, 3, 5, 6, 0, 1, 3, 4]
 const LEAPSX = [2, 3, 6, 7]
@@ -48,20 +41,36 @@ function myDoomsday(y: number, m: number, d: number) {
 
 function App() {
   const [state, setState] = useState({
-    date: getRandomDate(),
+    date: getRandomDate(1900, 2100),
     won: 0, did: 0,
     showSolution: false,
     lastClicked: null as (null | number),
     isCorrect: null as (null | boolean),
-    showTables: false,
+    showTables: true,
+    timeStart: Date.now(),
+    timeEnd: null as (null | number),
+    yearStart: 1900,
+    yearEnd: 2100,
   })
   function refresh() {
     setState({
       ...state,
-      date: getRandomDate(), showSolution: false, isCorrect: null
+      date: getRandomDate(state.yearStart, state.yearEnd),
+      showSolution: false,
+      isCorrect: null,
+      timeStart: Date.now(),
+      timeEnd: null,
     })
   }
-  const maybeShowModulus = (v: number) => v >= 7 ? <> = {v - 7}</> : <></>
+  function getRandomDate(yearStart: number, yearEnd: number): {y: number, m: number, d: number} {
+    const y = _.random(yearStart, yearEnd, false)
+    const m = _.random(1, 12, false)
+    const d = _.random(1, months(isLeap(y))[m - 1], false)
+    return { y: y, m: m, d: d };
+  }
+  function maybeShowModulus(v: number): any{
+    return v >= 7 ? <> = {v - 7}{maybeShowModulus(v - 7)}</> : <></>
+  }
   const date = new Date(state.date.y, state.date.m - 1, state.date.d)
   const name = date.toLocaleDateString('en-uk', { month: 'long', year: 'numeric', day: 'numeric' })
   const correctDay = date.getDay();
@@ -79,7 +88,7 @@ function App() {
     <mui.Stack alignItems="center" spacing={1}>
       <mui.DialogTitle variant="h3" padding={0}
           color={state.isCorrect === null ? 'default'
-               : state.isCorrect ? 'primary' : 'error'}>
+               : state.isCorrect ? 'green' : 'error'}>
         {name}
       </mui.DialogTitle>
       <mui.Typography variant="h5">{state.won} / {state.did}</mui.Typography>
@@ -105,18 +114,18 @@ function App() {
               isCorrect: correct,
               lastClicked: i,
               showSolution: true,
+              timeEnd: Date.now(),
             })
           }}>
           {i}
         </mui.Button>)}</mui.Stack>}
       {!state.showSolution ? [] :
-        <>
           <div>
-            <mui.Table size="medium">
+            <mui.Table size="small">
               <mui.TableRow>
                 <mui.TableCell>Date:</mui.TableCell>
-                <mui.TableCell>{MONTHS[m - 1]} {d}</mui.TableCell>
-                <mui.TableCell>{MONTHS_DIFF[m - 1]} + {d % 7} = {dateComponent}{maybeShowModulus(dateComponent)}</mui.TableCell>
+                <mui.TableCell>{d} {MONTHS[m - 1]}</mui.TableCell>
+                <mui.TableCell>{d % 7} + {MONTHS_DIFF[m - 1] >= 0 ? MONTHS_DIFF[m - 1] : `(${MONTHS_DIFF[m - 1]})`} = {dateComponent}{maybeShowModulus(dateComponent)}</mui.TableCell>
               </mui.TableRow>
               <mui.TableRow>
                 <mui.TableCell>Year:</mui.TableCell>
@@ -131,34 +140,56 @@ function App() {
               </mui.TableRow>
             </mui.Table>
           </div>
-          <mui.Button onClick={refresh}>Continue</mui.Button>
-        </>
       }
-      <mui.FormControlLabel
-        control={<mui.Switch />}
-        checked={state.showTables}
-        onChange={(_, k) => setState({ ...state, showTables: k })}
-        label="Show tables" />
+      {state.timeEnd ?
+          <mui.Typography variant="h5" color={state.isCorrect === null ? 'default'
+                                            : state.isCorrect ? 'green' : 'error'}>
+            {((state.timeEnd - state.timeStart) / 1000).toFixed(2).toString() + ' s'}
+          </mui.Typography>
+        : <></>
+      }
+      {!state.showSolution ? [] :
+          <mui.Button onClick={refresh}>Continue</mui.Button>
+      }
       {state.showTables ?
         <mui.Stack direction="row">
           <mui.Card>
             <mui.Table size="small">
-              {DECADE.map((d, i) => <mui.TableRow>
-                <mui.TableCell>{_.padStart((i * 10).toString(), 2, '0')}</mui.TableCell>
+              {MONTHS_DIFF.map((d, i) => <mui.TableRow sx={{ color: d == 0 ? 'lightgrey' : 'primary'}}>
+                <mui.TableCell align="right" sx={{ color: d == 0 ? 'lightgrey'
+                   : [0,1].includes(i) ? 'blue'
+                   : 'primary' }}>{MONTHS[i % 12]}</mui.TableCell>
+                <mui.TableCell align="right">{d}</mui.TableCell>
+              </mui.TableRow>)}
+            </mui.Table>
+          </mui.Card>
+          <mui.Card>
+            <mui.Table size="small">
+              {DECADE.map((d, i) => <mui.TableRow sx={{ color: i == 0 ? 'lightgrey' : 'primary'}}>
+                <mui.TableCell><span style={{ color: i % 2 == 1 ? 'red' : 'primary'}}>{i.toString()}</span><span>0</span></mui.TableCell>
                 <mui.TableCell>{d}</mui.TableCell>
               </mui.TableRow>)}
             </mui.Table>
           </mui.Card>
           <mui.Card>
             <mui.Table size="small">
-              {MONTHS_DIFF.map((d, i) => <mui.TableRow>
-                <mui.TableCell align="right">{MONTHS[i]}</mui.TableCell>
-                <mui.TableCell align="right">{d}</mui.TableCell>
+              {[0,1,2,3,4,5,6,7,8,9].map(i => <mui.TableRow sx={{ color: i <= 1 ? 'lightgrey' : 'primary'}}>
+                <mui.TableCell align="right" sx={{ color: [2,3,6,7].includes(i) ? 'red' : 'primary'}}>{i}</mui.TableCell>
+                <mui.TableCell align="right">{(i + Math.floor(i / 4)) % 7}</mui.TableCell>
               </mui.TableRow>)}
             </mui.Table>
           </mui.Card>
         </mui.Stack>
         : <></>}
+        <mui.FormControlLabel
+          control={<mui.Switch />}
+          checked={state.showTables}
+          onChange={(_, v) => setState({ ...state, showTables: v })}
+          label="Show tables" />
+        <mui.Stack spacing={1} direction="row">
+          <mui.TextField type="number" size="small" label="Start year" variant="outlined" value={state.yearStart} onChange={e => setState({ ...state, yearStart: parseInt(e.target.value) })} />
+          <mui.TextField type="number" size="small" label="End year" variant="outlined" value={state.yearEnd} onChange={e => setState({ ...state, yearEnd: parseInt(e.target.value) })} />
+        </mui.Stack>
     </mui.Stack>)
 }
 
