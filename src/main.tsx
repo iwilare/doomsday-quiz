@@ -68,9 +68,6 @@ function App() {
     const d = _.random(1, months(isLeap(y))[m - 1], false)
     return { y: y, m: m, d: d };
   }
-  function maybeShowModulus(v: number): any{
-    return v >= 7 ? <> = {v - 7}{maybeShowModulus(v - 7)}</> : <></>
-  }
   const date = new Date(state.date.y, state.date.m - 1, state.date.d)
   const name = date.toLocaleDateString('en-uk', { month: 'long', year: 'numeric', day: 'numeric' })
   const correctDay = date.getDay();
@@ -86,7 +83,7 @@ function App() {
 
   return (
     <mui.Stack alignItems="center" spacing={1}>
-      <mui.DialogTitle variant="h3" padding={0}
+      <mui.DialogTitle variant="h4" padding={0}
           color={state.isCorrect === null ? 'default'
                : state.isCorrect ? 'green' : 'error'}>
         {name}
@@ -119,28 +116,6 @@ function App() {
           }}>
           {i}
         </mui.Button>)}</mui.Stack>}
-      {!state.showSolution ? [] :
-          <div>
-            <mui.Table size="small">
-              <mui.TableRow>
-                <mui.TableCell>Date:</mui.TableCell>
-                <mui.TableCell>{d} {MONTHS[m - 1]}</mui.TableCell>
-                <mui.TableCell>{d % 7} + {MONTHS_DIFF[m - 1] >= 0 ? MONTHS_DIFF[m - 1] : `(${MONTHS_DIFF[m - 1]})`} = {dateComponent}{maybeShowModulus(dateComponent)}</mui.TableCell>
-              </mui.TableRow>
-              <mui.TableRow>
-                <mui.TableCell>Year:</mui.TableCell>
-                <mui.TableCell>{y}</mui.TableCell>
-                <mui.TableCell>{CENTURY[c % 4]} + {DECADE[u]} + {
-                  YDIGIT[z]} + {(u % 2 != 0 && LEAPSX.includes(z) ? 1 : 0)} = {fullYearComponent}{maybeShowModulus(fullYearComponent)} </mui.TableCell>
-              </mui.TableRow>
-              <mui.TableRow>
-                <mui.TableCell>Result:</mui.TableCell>
-                <mui.TableCell></mui.TableCell>
-                <mui.TableCell>{dateComponent % 7} + {fullYearComponent % 7} = {resultComponent}{maybeShowModulus(resultComponent)}</mui.TableCell>
-              </mui.TableRow>
-            </mui.Table>
-          </div>
-      }
       {state.timeEnd ?
           <mui.Typography variant="h5" color={state.isCorrect === null ? 'default'
                                             : state.isCorrect ? 'green' : 'error'}>
@@ -181,6 +156,42 @@ function App() {
           </mui.Card>
         </mui.Stack>
         : <></>}
+    {!(state.showTables && state.showSolution) ? [] :
+          <div>
+            <mui.Table size="small">
+              <mui.TableRow>
+                <mui.TableCell align="right">Day</mui.TableCell>
+                <mui.TableCell align="right"></mui.TableCell>
+                <mui.TableCell align="right">{d % 7}</mui.TableCell>
+              </mui.TableRow>
+              <mui.TableRow>
+                <mui.TableCell align="right">Month</mui.TableCell>
+                <mui.TableCell align="right"><span style={{color: [1,2].includes(m) ? 'blue' : 'primary'}}>{MONTHS_DIFF[m - 1]}</span></mui.TableCell>
+                <mui.TableCell align="right">{(d + MONTHS_DIFF[m - 1]) % 7}</mui.TableCell>
+              </mui.TableRow>
+              <mui.TableRow>
+                <mui.TableCell align="right">Century</mui.TableCell>
+                <mui.TableCell align="right">{CENTURY[c % 4]}</mui.TableCell>
+                <mui.TableCell align="right">{(d + MONTHS_DIFF[m - 1] + CENTURY[c % 4]) % 7}</mui.TableCell>
+              </mui.TableRow>
+              <mui.TableRow>
+                <mui.TableCell align="right">Decade</mui.TableCell>
+                <mui.TableCell align="right">{DECADE[u]}</mui.TableCell>
+                <mui.TableCell align="right">{(d + MONTHS_DIFF[m - 1] + CENTURY[c % 4] + DECADE[u]) % 7}</mui.TableCell>
+              </mui.TableRow>
+              <mui.TableRow>
+                <mui.TableCell align="right">Units</mui.TableCell>
+                <mui.TableCell align="right">{YDIGIT[z]}</mui.TableCell>
+                <mui.TableCell align="right">{(d + MONTHS_DIFF[m - 1] + CENTURY[c % 4] + DECADE[u] + YDIGIT[z]) % 7}</mui.TableCell>
+              </mui.TableRow>
+              <mui.TableRow>
+                <mui.TableCell align="right">Leap</mui.TableCell>
+                <mui.TableCell align="right">{(x => <span style={{color: x > 0 ? 'red' : 'primary'}}>{x}</span>)(u % 2 != 0 && LEAPSX.includes(z) ? 1 : 0)}</mui.TableCell>
+                <mui.TableCell align="right">{(d + MONTHS_DIFF[m - 1] + CENTURY[c % 4] + DECADE[u] + YDIGIT[z] + (u % 2 != 0 && LEAPSX.includes(z) ? 1 : 0)) % 7}</mui.TableCell>
+              </mui.TableRow>
+            </mui.Table>
+          </div>
+      }
         <mui.FormControlLabel
           control={<mui.Switch />}
           checked={state.showTables}
