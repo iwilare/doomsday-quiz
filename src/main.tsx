@@ -1,8 +1,12 @@
-import React, { useRef } from 'react'
+import React, { useEffect, useRef } from 'react'
 import ReactDOM from 'react-dom/client'
 import { useState } from 'react'
 import * as mui from '@mui/material'
-import _ from 'lodash'
+import { DatePicker } from '@mui/x-date-pickers/DatePicker';
+import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider'
+import * as Dayjs from 'dayjs'
+import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs';
+import _, { countBy } from 'lodash'
 
 const months = (isLeap: boolean) => [31, isLeap ? 29 : 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31]
 const isLeap = (y: number) => y % 4 == 0 && y % 100 != 0 || y % 400 == 0
@@ -12,18 +16,19 @@ const DECADE = [0, 5, 4, 2, 1, 6, 5, 3, 2, 0]
 const YDIGIT = [0, 1, 2, 3, 5, 6, 0, 1, 3, 4]
 const LEAPSX = [2, 3, 6, 7]
 const CENTURY = [2, 0, 5, 3]
-const MONTHS_DIFF = [-2, // jan next year
-  1, // feb next year
-  0, // mar
-  3, // apr
--2, // may
-  1, // jun
-  3, // jul
--1, // aug
-  2, // sep
--3, // oct
-  0, // nov
-  2  // dec
+const MONTHS_DIFF = [
+  -2, // jan next year
+   1, // feb next year
+   0, // mar
+   3, // apr
+  -2, // may
+   1, // jun
+   3, // jul
+  -1, // aug
+   2, // sep
+  -3, // oct
+   0, // nov
+   2  // dec
 ]
 const MONTHS = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"]
 
@@ -39,6 +44,8 @@ function myDoomsday(y: number, m: number, d: number) {
   ) % 7
 }
 
+type AnimationState = "done" | "day" | "month" | "year" | "wait"
+
 function App() {
   const [state, setState] = useState({
     date: getRandomDate(1900, 2100),
@@ -46,12 +53,40 @@ function App() {
     showSolution: false,
     lastClicked: null as (null | number),
     isCorrect: null as (null | boolean),
-    showTables: true,
+    showTables: false,
     timeStart: Date.now(),
     timeEnd: null as (null | number),
     yearStart: 1900,
     yearEnd: 2100,
+    animationState: "done" as AnimationState,
+    animationTime: [1000, 1000, 1000],
+    showAdvanced: false,
+    showAnimations: true,
+    query: null as (null | Dayjs.Dayjs),
   })
+  //animation()
+  const useTimeoutChain = (fns: ([() => void, number])[]) =>
+    useEffect(() => {
+      const next = () => {
+        if (fns.length > 0) {
+          const [[fn, delay], ...newFns] = fns;
+          fns = newFns;
+          setTimeout(() => { fn(); next(); }, delay);
+        }
+      };
+      next();
+    }, []);
+
+  animation()
+
+  function animation() {
+    useTimeoutChain([
+      [() => setState({...state, animationState: 'day'}),   state.animationTime[0]],
+      [() => setState({...state, animationState: 'month'}), state.animationTime[1]],
+      [() => setState({...state, animationState: 'year'}),  state.animationTime[2]],
+      [() => setState({...state, animationState: 'wait'}),  0],
+    ])
+  }
   function refresh() {
     setState({
       ...state,
@@ -60,7 +95,9 @@ function App() {
       isCorrect: null,
       timeStart: Date.now(),
       timeEnd: null,
+      animationState: "done"
     })
+    animation()
   }
   function getRandomDate(yearStart: number, yearEnd: number): {y: number, m: number, d: number} {
     const y = _.random(yearStart, yearEnd, false)
@@ -68,6 +105,7 @@ function App() {
     const d = _.random(1, months(isLeap(y))[m - 1], false)
     return { y: y, m: m, d: d };
   }
+
   const date = new Date(state.date.y, state.date.m - 1, state.date.d)
   const name = date.toLocaleDateString('en-uk', { month: 'long', year: 'numeric', day: 'numeric' })
   const correctDay = date.getDay();
@@ -86,7 +124,12 @@ function App() {
       <mui.DialogTitle variant="h4" padding={0}
           color={state.isCorrect === null ? 'default'
                : state.isCorrect ? 'green' : 'error'}>
-        {name}
+        { !state.showSolution && state.showAnimations && state.animationState == 'day'   ? name.split(' ')[0]
+        : !state.showSolution && state.showAnimations && state.animationState == 'month' ? name.split(' ')[1]
+        : !state.showSolution && state.showAnimations && state.animationState == 'year'  ? name.split(' ')[2]
+        : !state.showSolution && state.showAnimations && state.animationState == 'wait'  ? '?'
+        : name}
+        {state.animationState}
       </mui.DialogTitle>
       <mui.Typography variant="h5">{state.won} / {state.did}</mui.Typography>
       {<mui.Stack spacing={0.5} direction="row">{[0, 1, 2, 3, 4, 5, 6].map(i =>
@@ -192,15 +235,41 @@ function App() {
             </mui.Table>
           </div>
       }
+      <mui.FormGroup row={true}>
         <mui.FormControlLabel
           control={<mui.Switch />}
           checked={state.showTables}
           onChange={(_, v) => setState({ ...state, showTables: v })}
-          label="Show tables" />
-        <mui.Stack spacing={1} direction="row">
-          <mui.TextField type="number" size="small" label="Start year" variant="outlined" value={state.yearStart} onChange={e => setState({ ...state, yearStart: parseInt(e.target.value) })} />
-          <mui.TextField type="number" size="small" label="End year" variant="outlined" value={state.yearEnd} onChange={e => setState({ ...state, yearEnd: parseInt(e.target.value) })} />
+          label="Tables" />
+        <mui.FormControlLabel
+          control={<mui.Switch />}
+          checked={state.showAnimations}
+          onChange={(_, v) => setState({ ...state, showAnimations: v })}
+          label="Animations" />
+        <mui.FormControlLabel
+          control={<mui.Switch />}
+          checked={state.showAdvanced}
+          onChange={(_, v) => setState({ ...state, showAdvanced: v })}
+          label="Advanced" />
+      </mui.FormGroup>
+      {!state.showAdvanced ? [] :
+        <><mui.Stack spacing={1} direction="row">
+          <mui.TextField sx={{width: 100}} type="number" size="small" label="Start year" variant="outlined" value={state.yearStart} onChange={e => setState({ ...state, yearStart: parseInt(e.target.value) })} />
+          <mui.TextField sx={{width: 100}} type="number" size="small" label="End year" variant="outlined" value={state.yearEnd} onChange={e => setState({ ...state, yearEnd: parseInt(e.target.value) })} />
         </mui.Stack>
+        <LocalizationProvider dateAdapter={AdapterDayjs}>
+        <DatePicker
+          label="Query"
+          value={state.query}
+          onChange={query => {
+            setState({ ...state, query: query });
+          }}
+          renderInput={p => <mui.TextField {...p} />}
+        />
+        </LocalizationProvider>
+        {state.query !== null ? <mui.Typography variant="h5">{state.query.day()}</mui.Typography> : <></>}
+        </>
+      }
     </mui.Stack>)
 }
 
