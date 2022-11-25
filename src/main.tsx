@@ -154,7 +154,7 @@ function App() {
         justifyContent: 'center',
         alignItems: 'center',
         height: '100vh',
-        width: '100vh'}}>
+        width: '100%'}}>
       <mui.Stack alignItems="center" spacing={1}>
         <mui.DialogTitle variant="h4" align="center" sx={{ px: 0 }}
           color={state.isCorrect === null ? 'default'
