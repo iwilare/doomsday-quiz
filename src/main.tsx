@@ -133,7 +133,7 @@ function App() {
                   : name}
         </mui.DialogTitle>
         <mui.Typography variant="h5">{state.won} / {state.did}</mui.Typography>
-        {<mui.Stack spacing={0.5} direction="row">{[0, 1, 2, 3, 4, 5, 6].map(i =>
+        <mui.Stack spacing={0.5} alignItems="center" direction="row">{[0, 1, 2, 3, 4, 5, 6].map(i =>
           <mui.Button
             variant="contained"
             key={i}
@@ -157,9 +157,7 @@ function App() {
                   timeEnd: Date.now(),
                 }))
               }
-            }}>
-            {i}
-          </mui.Button>)}</mui.Stack>}
+            }}>{i}</mui.Button>)}</mui.Stack>
         {state.timeEnd ?
           <mui.Typography variant="h5" color={state.isCorrect === null ? 'default'
             : state.isCorrect ? 'green' : 'error'}>
@@ -176,9 +174,16 @@ function App() {
               <mui.Table size="small">
                 {MONTHS_DIFF.map((d, i) => <mui.TableRow sx={{ color: d == 0 ? 'lightgrey' : 'primary' }}>
                   <mui.TableCell align="right" sx={{
-                    color: d == 0 ? 'lightgrey'
-                      : [0, 1].includes(i) ? 'blue'
-                        : 'primary'
+                    textDecoration: [0, 1].includes(i) ? 'underline' : '',
+                    color: [0, 1].includes(i) ? 'purple'
+                         : d ==  0            ? 'lightgrey'
+                         : d ==  2            ? 'orange'
+                         : d ==  1            ? 'gold'
+                         : d ==  3            ? 'red'
+                         : d == -1            ? 'gold'
+                         : d == -3            ? '#009fff'
+                         : d <   0            ? 'blue'
+                         : 'primary'
                   }}>{MONTHS[i % 12]}</mui.TableCell>
                   <mui.TableCell align="right">{d}</mui.TableCell>
                 </mui.TableRow>)}
@@ -187,16 +192,26 @@ function App() {
             <mui.Card>
               <mui.Table size="small">
                 {DECADE.map((d, i) => <mui.TableRow sx={{ color: i == 0 ? 'lightgrey' : 'primary' }}>
-                  <mui.TableCell><span style={{ color: i % 2 == 1 ? 'red' : 'primary' }}>{i.toString()}</span><span>0</span></mui.TableCell>
-                  <mui.TableCell>{d}</mui.TableCell>
+                  <mui.TableCell><span style={{ color: i % 2 == 1 ? 'red' : 'primary' }}>{i.toString()}</span><span style={{ color: '#eeeeee' }}>0</span></mui.TableCell>
+                  <mui.TableCell padding="none" align="center">{i == 5 ? '⇵'
+                                 : i == 6 ? '⇵'
+                                 : '⟶'}</mui.TableCell><mui.TableCell>{d}</mui.TableCell>
                 </mui.TableRow>)}
               </mui.Table>
             </mui.Card>
             <mui.Card>
               <mui.Table size="small">
-                {[0, 1, 2, 3, 4, 5, 6, 7, 8, 9].map(i => <mui.TableRow sx={{ color: i <= 1 ? 'lightgrey' : 'primary' }}>
-                  <mui.TableCell align="right" sx={{ color: [2, 3, 6, 7].includes(i) ? 'red' : 'primary' }}>{i}</mui.TableCell>
+                {[0, 1, 2, 3, 4, 5, 6, 7, 8, 9].map(i => <mui.TableRow sx={{ color: [0, 1, 2, 3, 6].includes(i) ? 'lightgrey' : 'primary' }}>
+                  <mui.TableCell align="right" sx={{ color: [2, 3, 6, 7].includes(i) ? 'red' : 'primary' }}>{i}</mui.TableCell><mui.TableCell padding="none">⟶</mui.TableCell>
                   <mui.TableCell align="right">{(i + Math.floor(i / 4)) % 7}</mui.TableCell>
+                </mui.TableRow>)}
+              </mui.Table>
+            </mui.Card>
+            <mui.Card>
+              <mui.Table size="small">
+                {[16, 17, 18, 19, 20, 21, 22, 23].map(i => <mui.TableRow sx={{ color: [19, 20].includes(i) ? 'primary' : 'lightgrey' }}>
+                  <mui.TableCell align="right">{i}</mui.TableCell><mui.TableCell padding="none">⟶</mui.TableCell>
+                  <mui.TableCell align="right">{CENTURY[i % 4]}</mui.TableCell>
                 </mui.TableRow>)}
               </mui.Table>
             </mui.Card>
@@ -243,7 +258,7 @@ function App() {
             control={<mui.Switch />}
             checked={state.showTables}
             onChange={(_, v) => setState(_ => ({ ..._, showTables: v }))}
-            label="Tables" />
+            label="Table" />
           <mui.FormControlLabel
             control={<mui.Switch />}
             checked={state.showAnimations}
