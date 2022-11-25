@@ -78,7 +78,7 @@ function App() {
     timeEnd: null as (null | number),
     yearStart: 1900,
     yearEnd: 2100,
-    animationTime: 1500,
+    animationTime: 1000,
     showOptions: true,
     showAnimations: false,
     showColors: true,
@@ -150,27 +150,22 @@ function App() {
   return (
     <ThemeProvider theme={theme}>
       <CssBaseline />
-      <mui.Box sx={{ display: 'flex',
-        justifyContent: 'center',
-        alignItems: 'center',
-        height: '100vh',
-        width: '100%'}}>
-      <mui.Stack alignItems="center" spacing={1}>
+      <mui.Stack sx={{ mt: 4 }} alignItems="center" spacing={1}>
         <mui.DialogTitle variant="h4" align="center" sx={{ px: 0 }}
-          color={state.isCorrect === null ? 'default'
-            : state.isCorrect ? 'green' : 'error'}>
-          {state.showAnimations && state.$ == 'day' ? name.split(' ')[0]
-            : state.showAnimations && state.$ == 'month' ? name.split(' ')[1]
-              : state.showAnimations && state.$ == 'year' ? name.split(' ')[2]
-                : state.showAnimations && state.$ == 'wait' ? '?'
-                  : name}
+          color={ state.isCorrect === null ? 'default'
+                : state.isCorrect ? 'green' : 'error'}>
+          { state.showAnimations && state.$ == 'day'   ? name.split(' ')[0]
+          : state.showAnimations && state.$ == 'month' ? name.split(' ')[1]
+          : state.showAnimations && state.$ == 'year'  ? name.split(' ')[2]
+          : state.showAnimations && state.$ == 'wait'  ? '?'
+          : name}
         </mui.DialogTitle>
         <mui.Box sx={{ px: 1, width: '100%' }}>
           <mui.Box sx={{ display: 'flex', width: '100%', justifyContent: 'center' }}>{[0, 1, 2, 3, 4, 5, 6].map(i =>
             <mui.Button
               variant="contained"
               key={i}
-              sx={{ minWidth: 60, maxWidth: 60, mx: 0.25 }}
+              sx={{ minWidth: 0, maxWidth: 50, mx: 0.25 }}
               fullWidth={true}
               color={
                 state.$ != 'answer' ? 'primary'
@@ -286,7 +281,6 @@ function App() {
         <mui.Collapse in={state.showOptions} timeout="auto" unmountOnExit>
           <mui.Stack alignItems="center" spacing={1}>
             <mui.Typography variant="h5" >{state.won} / {state.did}</mui.Typography>
-            <mui.Stack direction="row">
               <mui.Stack spacing={1}>
                 <mui.Stack spacing={1} direction="row" sx={{ width: 300 }}>
                   <mui.TextField type="number" size="small" label="Start year" variant="outlined" value={state.yearStart} onChange={e => setState(_ => ({ ..._, yearStart: parseInt(e.target.value) }))} />
@@ -327,11 +321,9 @@ function App() {
                     label="Hide colors" />
                 </mui.FormGroup>
               </mui.Stack>
-            </mui.Stack>
           </mui.Stack>
         </mui.Collapse>
       </mui.Stack>
-      </mui.Box>
     </ThemeProvider>
   )
 }
