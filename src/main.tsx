@@ -9,7 +9,10 @@ import * as Dayjs from 'dayjs'
 import { ThemeProvider, createTheme } from '@mui/material/styles';
 import CssBaseline from '@mui/material/CssBaseline';
 import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs';
+import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
+import IconButton, { IconButtonProps } from '@mui/material/IconButton';
 import _ from 'lodash'
+import { styled } from '@mui/material/styles';
 
 const months = (isLeap: boolean) => [31, isLeap ? 29 : 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31]
 const isLeap = (y: number) => y % 4 == 0 && y % 100 != 0 || y % 400 == 0
@@ -34,6 +37,20 @@ const MONTHS_DIFF = [
   2  // dec
 ]
 const MONTHS = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"]
+const COLORS = [
+  'purple', // jan next year
+  'purple', // feb next year
+  'lightgrey', // mar
+  'red', // apr
+  'blue', // may
+  'green', // jun
+  'red', // jul
+  'darkgreen', // aug
+  'orange', // sep
+  '#009fff', // oct
+  'lightgrey', // nov
+  'orange'  // dec
+]
 
 function myDoomsday(y: number, m: number, d: number) {
   y += [1, 2].includes(m) ? -1 : 0
@@ -62,8 +79,9 @@ function App() {
     yearStart: 1900,
     yearEnd: 2100,
     animationTime: 1500,
-    showAdvanced: false,
+    showOptions: true,
     showAnimations: false,
+    showColors: true,
     nightMode: useMediaQuery('(prefers-color-scheme: dark)'),
     query: null as (null | Dayjs.Dayjs),
   })
@@ -75,6 +93,16 @@ function App() {
     [state.nightMode],
   );
   const animationTimeout = useRef(undefined as (number | undefined))
+  const ExpandMore = styled((props: IconButtonProps & { expand: boolean }) => {
+    const { expand, ...other } = props;
+    return <IconButton {...other} />;
+  })(({ theme, expand }) => ({
+    transform: !expand ? 'rotate(0deg)' : 'rotate(180deg)',
+    marginLeft: 'auto',
+    transition: theme.transitions.create('transform', {
+      duration: theme.transitions.duration.shortest,
+    }),
+  }));
 
   function animation() {
     cancelAnimation()
@@ -137,6 +165,10 @@ function App() {
           <mui.Button
             variant="contained"
             key={i}
+            sx={{
+              minWidth: 0,
+            }}
+            fullWidth={true}
             color={
               state.$ != 'answer' ? 'primary'
                 : i == correctDay ? 'success'
@@ -169,21 +201,13 @@ function App() {
           <mui.Button onClick={refresh}>Continue</mui.Button>
         }
         {state.showTables ?
-          <mui.Stack direction="row">
+          <mui.Stack direction="row" pt={1.5}>
             <mui.Card>
               <mui.Table size="small">
                 {MONTHS_DIFF.map((d, i) => <mui.TableRow sx={{ color: d == 0 ? 'lightgrey' : 'primary' }}>
                   <mui.TableCell align="right" sx={{
                     textDecoration: [0, 1].includes(i) ? 'underline' : '',
-                    color: [0, 1].includes(i) ? 'purple'
-                         : d ==  0            ? 'lightgrey'
-                         : d ==  2            ? 'orange'
-                         : d ==  1            ? 'gold'
-                         : d ==  3            ? 'red'
-                         : d == -1            ? 'gold'
-                         : d == -3            ? '#009fff'
-                         : d <   0            ? 'blue'
-                         : 'primary'
+                    color: state.showColors ? COLORS[i] : 'primary'
                   }}>{MONTHS[i % 12]}</mui.TableCell>
                   <mui.TableCell align="right">{d}</mui.TableCell>
                 </mui.TableRow>)}
@@ -253,25 +277,33 @@ function App() {
             </mui.Table>
           </div>
         }
-        <mui.FormGroup row={true}>
-          <mui.FormControlLabel
-            control={<mui.Switch />}
-            checked={state.showTables}
-            onChange={(_, v) => setState(_ => ({ ..._, showTables: v }))}
-            label="Table" />
-          <mui.FormControlLabel
-            control={<mui.Switch />}
-            checked={state.showAnimations}
-            onChange={(_, v) => setState(_ => ({ ..._, showAnimations: v }))}
-            label="Animations" />
-          <mui.FormControlLabel
-            control={<mui.Switch />}
-            checked={state.showAdvanced}
-            onChange={(_, v) => setState(_ => ({ ..._, showAdvanced: v }))}
-            label="Advanced" />
-        </mui.FormGroup>
-        {!state.showAdvanced ? [] :
-          <>
+        <ExpandMore expand={state.showOptions} onClick={() => setState(_ => ({ ..._, showOptions: !_.showOptions }))}>
+          <ExpandMoreIcon />
+        </ExpandMore>
+        <mui.Collapse in={state.showOptions} timeout="auto" unmountOnExit>
+          <mui.Stack alignItems="center" spacing={1}>
+            <mui.FormGroup>
+              <mui.FormControlLabel
+                control={<mui.Switch />}
+                checked={state.showTables}
+                onChange={(_, v) => setState(_ => ({ ..._, showTables: v }))}
+                label="Table" />
+              <mui.FormControlLabel
+                control={<mui.Switch />}
+                checked={state.showAnimations}
+                onChange={(_, v) => setState(_ => ({ ..._, showAnimations: v }))}
+                label="Animations" />
+              <mui.FormControlLabel
+                control={<mui.Switch />}
+                checked={state.nightMode}
+                onChange={(_, v) => setState(_ => ({ ..._, nightMode: v }))}
+                label="Night mode" />
+              <mui.FormControlLabel
+                control={<mui.Switch />}
+                checked={!state.showColors}
+                onChange={(_, v) => setState(_ => ({ ..._, showColors: !v }))}
+                label="Hide colors" />
+            </mui.FormGroup>
             <mui.Stack spacing={1} direction="row" sx={{ width: 300 }}>
               <mui.TextField type="number" size="small" label="Start year" variant="outlined" value={state.yearStart} onChange={e => setState(_ => ({ ..._, yearStart: parseInt(e.target.value) }))} />
               <mui.TextField type="number" size="small" label="End year" variant="outlined" value={state.yearEnd} onChange={e => setState(_ => ({ ..._, yearEnd: parseInt(e.target.value) }))} />
@@ -286,13 +318,8 @@ function App() {
               />
             </LocalizationProvider>
             {state.query !== null ? <mui.Typography variant="h5">{state.query.day()}</mui.Typography> : <></>}
-            <mui.FormControlLabel
-              control={<mui.Switch />}
-              checked={state.nightMode}
-              onChange={(_, v) => setState(_ => ({ ..._, nightMode: v }))}
-              label="Night mode" />
-          </>
-        }
+            </mui.Stack>
+          </mui.Collapse>
       </mui.Stack>
     </ThemeProvider>
   )
