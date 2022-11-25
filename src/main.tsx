@@ -151,23 +151,21 @@ function App() {
     <ThemeProvider theme={theme}>
       <CssBaseline />
       <mui.Stack alignItems="center" spacing={1}>
-        <mui.DialogTitle variant="h4" padding={0}
+        <mui.DialogTitle variant="h4" align="center" sx={{ px: 0 }}
           color={state.isCorrect === null ? 'default'
             : state.isCorrect ? 'green' : 'error'}>
           {state.showAnimations && state.$ == 'day' ? name.split(' ')[0]
-            : state.showAnimations && state.$ == 'month' ? name.split(' ')[1]
-              : state.showAnimations && state.$ == 'year' ? name.split(' ')[2]
-                : state.showAnimations && state.$ == 'wait' ? '?'
-                  : name}
+         : state.showAnimations && state.$ == 'month' ? name.split(' ')[1]
+         : state.showAnimations && state.$ == 'year' ? name.split(' ')[2]
+         : state.showAnimations && state.$ == 'wait' ? '?'
+         : name}
         </mui.DialogTitle>
-        <mui.Typography variant="h5">{state.won} / {state.did}</mui.Typography>
-        <mui.Stack spacing={0.5} alignItems="center" direction="row">{[0, 1, 2, 3, 4, 5, 6].map(i =>
+        <mui.Box sx={{ px: 1, width: '100%' }}>
+          <mui.Box sx={{ display: 'flex', width: '100%', justifyContent: 'center' }}>{[0, 1, 2, 3, 4, 5, 6].map(i =>
           <mui.Button
             variant="contained"
             key={i}
-            sx={{
-              minWidth: 0,
-            }}
+            sx={{ minWidth: 0, maxWidth: 60, mx: 0.25 }}
             fullWidth={true}
             color={
               state.$ != 'answer' ? 'primary'
@@ -189,7 +187,7 @@ function App() {
                   timeEnd: Date.now(),
                 }))
               }
-            }}>{i}</mui.Button>)}</mui.Stack>
+            }}>{i}</mui.Button>)}</mui.Box></mui.Box>
         {state.timeEnd ?
           <mui.Typography variant="h5" color={state.isCorrect === null ? 'default'
             : state.isCorrect ? 'green' : 'error'}>
@@ -231,14 +229,14 @@ function App() {
                 </mui.TableRow>)}
               </mui.Table>
             </mui.Card>
-            <mui.Card>
+            {/*<mui.Card>
               <mui.Table size="small">
                 {[16, 17, 18, 19, 20, 21, 22, 23].map(i => <mui.TableRow sx={{ color: [19, 20].includes(i) ? 'primary' : 'lightgrey' }}>
                   <mui.TableCell align="right">{i}</mui.TableCell><mui.TableCell padding="none">⟶</mui.TableCell>
                   <mui.TableCell align="right">{CENTURY[i % 4]}</mui.TableCell>
                 </mui.TableRow>)}
               </mui.Table>
-            </mui.Card>
+            </mui.Card>*/}
           </mui.Stack>
           : <></>}
         {!(state.showTables && state.$ == 'answer') ? [] :
@@ -282,6 +280,7 @@ function App() {
         </ExpandMore>
         <mui.Collapse in={state.showOptions} timeout="auto" unmountOnExit>
           <mui.Stack alignItems="center" spacing={1}>
+            <mui.Typography variant="h5" >{state.won} / {state.did}</mui.Typography>
             <mui.FormGroup>
               <mui.FormControlLabel
                 control={<mui.Switch />}
