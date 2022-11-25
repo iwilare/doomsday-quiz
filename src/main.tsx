@@ -79,13 +79,13 @@ function App() {
   function animation() {
     cancelAnimation()
     const actions: { next: $, time: number }[] = [
-      { next: 'day',   time: state.animationTime },
+      { next: 'day', time: state.animationTime },
       { next: 'month', time: state.animationTime },
-      { next: 'year',  time: state.animationTime },
-      { next: 'wait',  time: 0 },
+      { next: 'year', time: state.animationTime },
+      { next: 'wait', time: 0 },
     ]
     actions.reduceRight((s, { next, time }) => () => {
-      setState(_ => ({ ..._, $: s.$ != 'answer' ? next : s.$ }));
+      setState(_ => ({ ..._, $: _.$ != 'answer' ? next : _.$ }));
       animationTimeout.current = setTimeout(s, time)
     }, () => { })()
   }
@@ -122,165 +122,165 @@ function App() {
   return (
     <ThemeProvider theme={theme}>
       <CssBaseline />
-    <mui.Stack alignItems="center" spacing={1}>
-      <mui.DialogTitle variant="h4" padding={0}
-        color={state.isCorrect === null ? 'default'
-          : state.isCorrect ? 'green' : 'error'}>
-        {state.showAnimations && state.$ == 'day' ? name.split(' ')[0]
-          : state.showAnimations && state.$ == 'month' ? name.split(' ')[1]
-            : state.showAnimations && state.$ == 'year' ? name.split(' ')[2]
-              : state.showAnimations && state.$ == 'wait' ? '?'
-                : name}
-      </mui.DialogTitle>
-      <mui.Typography variant="h5">{state.won} / {state.did}</mui.Typography>
-      {<mui.Stack spacing={0.5} direction="row">{[0, 1, 2, 3, 4, 5, 6].map(i =>
-        <mui.Button
-          variant="contained"
-          key={i}
-          color={
-            state.$ != 'answer' ? 'primary'
-              : i == correctDay ? 'success'
-                : i == state.lastClicked ? 'error' :
-                  'primary'}
-          onClick={e => {
-            if (state.$ == 'answer')
-              refresh();
-            else {
-              const correct = i == correctDay;
-              setState(_ => ({
-                ..._,
-                won: _.won + (correct ? 1 : 0),
-                did: _.did + 1,
-                isCorrect: correct,
-                lastClicked: i,
-                $: 'answer',
-                timeEnd: Date.now(),
-              }))
-            }
-          }}>
-          {i}
-        </mui.Button>)}</mui.Stack>}
-      {state.timeEnd ?
-        <mui.Typography variant="h5" color={state.isCorrect === null ? 'default'
-          : state.isCorrect ? 'green' : 'error'}>
-          {((state.timeEnd - state.timeStart) / 1000).toFixed(2).toString() + ' s'}
-        </mui.Typography>
-        : <></>
-      }
-      {state.$ != 'answer' ? [] :
-        <mui.Button onClick={refresh}>Continue</mui.Button>
-      }
-      {state.showTables ?
-        <mui.Stack direction="row">
-          <mui.Card>
-            <mui.Table size="small">
-              {MONTHS_DIFF.map((d, i) => <mui.TableRow sx={{ color: d == 0 ? 'lightgrey' : 'primary' }}>
-                <mui.TableCell align="right" sx={{
-                  color: d == 0 ? 'lightgrey'
-                    : [0, 1].includes(i) ? 'blue'
-                      : 'primary'
-                }}>{MONTHS[i % 12]}</mui.TableCell>
-                <mui.TableCell align="right">{d}</mui.TableCell>
-              </mui.TableRow>)}
-            </mui.Table>
-          </mui.Card>
-          <mui.Card>
-            <mui.Table size="small">
-              {DECADE.map((d, i) => <mui.TableRow sx={{ color: i == 0 ? 'lightgrey' : 'primary' }}>
-                <mui.TableCell><span style={{ color: i % 2 == 1 ? 'red' : 'primary' }}>{i.toString()}</span><span>0</span></mui.TableCell>
-                <mui.TableCell>{d}</mui.TableCell>
-              </mui.TableRow>)}
-            </mui.Table>
-          </mui.Card>
-          <mui.Card>
-            <mui.Table size="small">
-              {[0, 1, 2, 3, 4, 5, 6, 7, 8, 9].map(i => <mui.TableRow sx={{ color: i <= 1 ? 'lightgrey' : 'primary' }}>
-                <mui.TableCell align="right" sx={{ color: [2, 3, 6, 7].includes(i) ? 'red' : 'primary' }}>{i}</mui.TableCell>
-                <mui.TableCell align="right">{(i + Math.floor(i / 4)) % 7}</mui.TableCell>
-              </mui.TableRow>)}
-            </mui.Table>
-          </mui.Card>
-        </mui.Stack>
-        : <></>}
-      {!(state.showTables && state.$ == 'answer') ? [] :
-        <div>
-          <mui.Table size="small">
-            <mui.TableRow>
-              <mui.TableCell align="right">Day</mui.TableCell>
-              <mui.TableCell align="right"></mui.TableCell>
-              <mui.TableCell align="right">{d % 7}</mui.TableCell>
-            </mui.TableRow>
-            <mui.TableRow>
-              <mui.TableCell align="right">Month</mui.TableCell>
-              <mui.TableCell align="right"><span style={{ color: [1, 2].includes(m) ? 'blue' : 'primary' }}>{MONTHS_DIFF[m - 1]}</span></mui.TableCell>
-              <mui.TableCell align="right">{(d + MONTHS_DIFF[m - 1]) % 7}</mui.TableCell>
-            </mui.TableRow>
-            <mui.TableRow>
-              <mui.TableCell align="right">Century</mui.TableCell>
-              <mui.TableCell align="right">{CENTURY[c % 4]}</mui.TableCell>
-              <mui.TableCell align="right">{(d + MONTHS_DIFF[m - 1] + CENTURY[c % 4]) % 7}</mui.TableCell>
-            </mui.TableRow>
-            <mui.TableRow>
-              <mui.TableCell align="right">Decade</mui.TableCell>
-              <mui.TableCell align="right">{DECADE[u]}</mui.TableCell>
-              <mui.TableCell align="right">{(d + MONTHS_DIFF[m - 1] + CENTURY[c % 4] + DECADE[u]) % 7}</mui.TableCell>
-            </mui.TableRow>
-            <mui.TableRow>
-              <mui.TableCell align="right">Units</mui.TableCell>
-              <mui.TableCell align="right">{YDIGIT[z]}</mui.TableCell>
-              <mui.TableCell align="right">{(d + MONTHS_DIFF[m - 1] + CENTURY[c % 4] + DECADE[u] + YDIGIT[z]) % 7}</mui.TableCell>
-            </mui.TableRow>
-            <mui.TableRow>
-              <mui.TableCell align="right">Leap</mui.TableCell>
-              <mui.TableCell align="right">{(x => <span style={{ color: x > 0 ? 'red' : 'primary' }}>{x}</span>)(u % 2 != 0 && LEAPSX.includes(z) ? 1 : 0)}</mui.TableCell>
-              <mui.TableCell align="right">{(d + MONTHS_DIFF[m - 1] + CENTURY[c % 4] + DECADE[u] + YDIGIT[z] + (u % 2 != 0 && LEAPSX.includes(z) ? 1 : 0)) % 7}</mui.TableCell>
-            </mui.TableRow>
-          </mui.Table>
-        </div>
-      }
-      <mui.FormGroup row={true}>
-        <mui.FormControlLabel
-          control={<mui.Switch />}
-          checked={state.showTables}
-          onChange={(_, v) => setState(_ => ({ ..._, showTables: v }))}
-          label="Tables" />
-        <mui.FormControlLabel
-          control={<mui.Switch />}
-          checked={state.showAnimations}
-          onChange={(_, v) => setState(_ => ({ ..._, showAnimations: v }))}
-          label="Animations" />
-        <mui.FormControlLabel
-          control={<mui.Switch />}
-          checked={state.showAdvanced}
-          onChange={(_, v) => setState(_ => ({ ..._, showAdvanced: v }))}
-          label="Advanced" />
-      </mui.FormGroup>
-      {!state.showAdvanced ? [] :
-        <>
-          <mui.Stack spacing={1} direction="row" sx={{ width: 300 }}>
-            <mui.TextField type="number" size="small" label="Start year" variant="outlined" value={state.yearStart} onChange={e => setState(_ => ({ ..._, yearStart: parseInt(e.target.value) }))} />
-            <mui.TextField type="number" size="small" label="End year" variant="outlined" value={state.yearEnd} onChange={e => setState(_ => ({ ..._, yearEnd: parseInt(e.target.value) }))} />
+      <mui.Stack alignItems="center" spacing={1}>
+        <mui.DialogTitle variant="h4" padding={0}
+          color={state.isCorrect === null ? 'default'
+            : state.isCorrect ? 'green' : 'error'}>
+          {state.showAnimations && state.$ == 'day' ? name.split(' ')[0]
+            : state.showAnimations && state.$ == 'month' ? name.split(' ')[1]
+              : state.showAnimations && state.$ == 'year' ? name.split(' ')[2]
+                : state.showAnimations && state.$ == 'wait' ? '?'
+                  : name}
+        </mui.DialogTitle>
+        <mui.Typography variant="h5">{state.won} / {state.did}</mui.Typography>
+        {<mui.Stack spacing={0.5} direction="row">{[0, 1, 2, 3, 4, 5, 6].map(i =>
+          <mui.Button
+            variant="contained"
+            key={i}
+            color={
+              state.$ != 'answer' ? 'primary'
+                : i == correctDay ? 'success'
+                  : i == state.lastClicked ? 'error' :
+                    'primary'}
+            onClick={e => {
+              if (state.$ == 'answer')
+                refresh();
+              else {
+                const correct = i == correctDay;
+                setState(_ => ({
+                  ..._,
+                  won: _.won + (correct ? 1 : 0),
+                  did: _.did + 1,
+                  isCorrect: correct,
+                  lastClicked: i,
+                  $: 'answer',
+                  timeEnd: Date.now(),
+                }))
+              }
+            }}>
+            {i}
+          </mui.Button>)}</mui.Stack>}
+        {state.timeEnd ?
+          <mui.Typography variant="h5" color={state.isCorrect === null ? 'default'
+            : state.isCorrect ? 'green' : 'error'}>
+            {((state.timeEnd - state.timeStart) / 1000).toFixed(2).toString() + ' s'}
+          </mui.Typography>
+          : <></>
+        }
+        {state.$ != 'answer' ? [] :
+          <mui.Button onClick={refresh}>Continue</mui.Button>
+        }
+        {state.showTables ?
+          <mui.Stack direction="row">
+            <mui.Card>
+              <mui.Table size="small">
+                {MONTHS_DIFF.map((d, i) => <mui.TableRow sx={{ color: d == 0 ? 'lightgrey' : 'primary' }}>
+                  <mui.TableCell align="right" sx={{
+                    color: d == 0 ? 'lightgrey'
+                      : [0, 1].includes(i) ? 'blue'
+                        : 'primary'
+                  }}>{MONTHS[i % 12]}</mui.TableCell>
+                  <mui.TableCell align="right">{d}</mui.TableCell>
+                </mui.TableRow>)}
+              </mui.Table>
+            </mui.Card>
+            <mui.Card>
+              <mui.Table size="small">
+                {DECADE.map((d, i) => <mui.TableRow sx={{ color: i == 0 ? 'lightgrey' : 'primary' }}>
+                  <mui.TableCell><span style={{ color: i % 2 == 1 ? 'red' : 'primary' }}>{i.toString()}</span><span>0</span></mui.TableCell>
+                  <mui.TableCell>{d}</mui.TableCell>
+                </mui.TableRow>)}
+              </mui.Table>
+            </mui.Card>
+            <mui.Card>
+              <mui.Table size="small">
+                {[0, 1, 2, 3, 4, 5, 6, 7, 8, 9].map(i => <mui.TableRow sx={{ color: i <= 1 ? 'lightgrey' : 'primary' }}>
+                  <mui.TableCell align="right" sx={{ color: [2, 3, 6, 7].includes(i) ? 'red' : 'primary' }}>{i}</mui.TableCell>
+                  <mui.TableCell align="right">{(i + Math.floor(i / 4)) % 7}</mui.TableCell>
+                </mui.TableRow>)}
+              </mui.Table>
+            </mui.Card>
           </mui.Stack>
-          <mui.TextField type="number" size="small" label="Animation time" variant="outlined" value={state.animationTime} sx={{ width: 300 }} onChange={e => setState(_ => ({ ..._, animationTime: parseInt(e.target.value) }))} />
-          <LocalizationProvider dateAdapter={AdapterDayjs}>
-            <DatePicker
-              label="Query"
-              value={state.query}
-              onChange={q => setState(_ => ({ ..._, query: q }))}
-              renderInput={p => <mui.TextField sx={{ width: 300 }} {...p} />}
-            />
-          </LocalizationProvider>
-          {state.query !== null ? <mui.Typography variant="h5">{state.query.day()}</mui.Typography> : <></>}
+          : <></>}
+        {!(state.showTables && state.$ == 'answer') ? [] :
+          <div>
+            <mui.Table size="small">
+              <mui.TableRow>
+                <mui.TableCell align="right">Day</mui.TableCell>
+                <mui.TableCell align="right"></mui.TableCell>
+                <mui.TableCell align="right">{d % 7}</mui.TableCell>
+              </mui.TableRow>
+              <mui.TableRow>
+                <mui.TableCell align="right">Month</mui.TableCell>
+                <mui.TableCell align="right"><span style={{ color: [1, 2].includes(m) ? 'blue' : 'primary' }}>{MONTHS_DIFF[m - 1]}</span></mui.TableCell>
+                <mui.TableCell align="right">{(d + MONTHS_DIFF[m - 1]) % 7}</mui.TableCell>
+              </mui.TableRow>
+              <mui.TableRow>
+                <mui.TableCell align="right">Century</mui.TableCell>
+                <mui.TableCell align="right">{CENTURY[c % 4]}</mui.TableCell>
+                <mui.TableCell align="right">{(d + MONTHS_DIFF[m - 1] + CENTURY[c % 4]) % 7}</mui.TableCell>
+              </mui.TableRow>
+              <mui.TableRow>
+                <mui.TableCell align="right">Decade</mui.TableCell>
+                <mui.TableCell align="right">{DECADE[u]}</mui.TableCell>
+                <mui.TableCell align="right">{(d + MONTHS_DIFF[m - 1] + CENTURY[c % 4] + DECADE[u]) % 7}</mui.TableCell>
+              </mui.TableRow>
+              <mui.TableRow>
+                <mui.TableCell align="right">Units</mui.TableCell>
+                <mui.TableCell align="right">{YDIGIT[z]}</mui.TableCell>
+                <mui.TableCell align="right">{(d + MONTHS_DIFF[m - 1] + CENTURY[c % 4] + DECADE[u] + YDIGIT[z]) % 7}</mui.TableCell>
+              </mui.TableRow>
+              <mui.TableRow>
+                <mui.TableCell align="right">Leap</mui.TableCell>
+                <mui.TableCell align="right">{(x => <span style={{ color: x > 0 ? 'red' : 'primary' }}>{x}</span>)(u % 2 != 0 && LEAPSX.includes(z) ? 1 : 0)}</mui.TableCell>
+                <mui.TableCell align="right">{(d + MONTHS_DIFF[m - 1] + CENTURY[c % 4] + DECADE[u] + YDIGIT[z] + (u % 2 != 0 && LEAPSX.includes(z) ? 1 : 0)) % 7}</mui.TableCell>
+              </mui.TableRow>
+            </mui.Table>
+          </div>
+        }
+        <mui.FormGroup row={true}>
           <mui.FormControlLabel
             control={<mui.Switch />}
-            checked={state.nightMode}
-            onChange={(_, v) => setState(_ => ({ ..._, nightMode: v }))}
-            label="Night mode" />
-        </>
-      }
-    </mui.Stack>
+            checked={state.showTables}
+            onChange={(_, v) => setState(_ => ({ ..._, showTables: v }))}
+            label="Tables" />
+          <mui.FormControlLabel
+            control={<mui.Switch />}
+            checked={state.showAnimations}
+            onChange={(_, v) => setState(_ => ({ ..._, showAnimations: v }))}
+            label="Animations" />
+          <mui.FormControlLabel
+            control={<mui.Switch />}
+            checked={state.showAdvanced}
+            onChange={(_, v) => setState(_ => ({ ..._, showAdvanced: v }))}
+            label="Advanced" />
+        </mui.FormGroup>
+        {!state.showAdvanced ? [] :
+          <>
+            <mui.Stack spacing={1} direction="row" sx={{ width: 300 }}>
+              <mui.TextField type="number" size="small" label="Start year" variant="outlined" value={state.yearStart} onChange={e => setState(_ => ({ ..._, yearStart: parseInt(e.target.value) }))} />
+              <mui.TextField type="number" size="small" label="End year" variant="outlined" value={state.yearEnd} onChange={e => setState(_ => ({ ..._, yearEnd: parseInt(e.target.value) }))} />
+            </mui.Stack>
+            <mui.TextField type="number" size="small" label="Animation time" variant="outlined" value={state.animationTime} sx={{ width: 300 }} onChange={e => setState(_ => ({ ..._, animationTime: parseInt(e.target.value) }))} />
+            <LocalizationProvider dateAdapter={AdapterDayjs}>
+              <DatePicker
+                label="Query"
+                value={state.query}
+                onChange={q => setState(_ => ({ ..._, query: q }))}
+                renderInput={p => <mui.TextField sx={{ width: 300 }} {...p} />}
+              />
+            </LocalizationProvider>
+            {state.query !== null ? <mui.Typography variant="h5">{state.query.day()}</mui.Typography> : <></>}
+            <mui.FormControlLabel
+              control={<mui.Switch />}
+              checked={state.nightMode}
+              onChange={(_, v) => setState(_ => ({ ..._, nightMode: v }))}
+              label="Night mode" />
+          </>
+        }
+      </mui.Stack>
     </ThemeProvider>
-    )
+  )
 }
 
 ReactDOM.createRoot(document.getElementById('root') as HTMLElement).render(
