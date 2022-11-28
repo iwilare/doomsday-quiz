@@ -19,10 +19,6 @@ const months = (isLeap: boolean) => [31, isLeap ? 29 : 28, 31, 30, 31, 30, 31, 3
 const isLeap = (y: number) => y % 4 == 0 && y % 100 != 0 || y % 400 == 0
 const randomDate = (start: Date, end: Date) => new Date(start.getTime() + Math.random() * (end.getTime() - start.getTime()))
 
-const DECADE = [0, -2, -3, 2, 1, 5, 6, 3, 2, 0]
-const YDIGIT = [0, 1, 2, 3, 5, 6, 0, 1, 3, 4]
-const LEAPSX = [2, 3, 6, 7]
-const CENTURY = [2, 0, 5, 3]
 const MONTHS_DIFF = [
   -2, // jan next year
   1, // feb next year
@@ -37,6 +33,10 @@ const MONTHS_DIFF = [
   0, // nov
   2  // dec
 ]
+const CENTURY = [2, 0, 5, 3]
+const DECADE = [0, -2, -3, 2, 1, -1, -2, 3, 2, 0]
+const UNITS = [0, 1, 2, 3, -2, -1, 0, 1, 3, 4]
+const LEAPSX = [2, 3, 6, 7]
 const MONTHS = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"]
 
 const colorValue = (x: number) =>
@@ -84,7 +84,6 @@ function App() {
       <mui.TableCell align="right" sx={{color: _.hideArrVal ? nullColor : 'primary'}}>{_.v}</mui.TableCell>
     </mui.TableRow>
   }
-  console.log(useMediaQuery('(prefers-color-scheme: dark)'))
   const theme = useMemo(() =>
     createTheme({
       palette: { mode: state.nightMode ? 'dark' : 'light' },
@@ -142,18 +141,37 @@ function App() {
   const name = date.toLocaleDateString('en-uk', { month: 'long', year: 'numeric', day: 'numeric' })
   const correctDay = date.getDay();
 
-  let [y, m, d] = [state.date.y, state.date.m, state.date.d]
-  y += [1, 2].includes(m) ? -1 : 0
-  const [c, u, z] = [Math.floor(y / 100), Math.floor(y / 10) % 10, y % 10]
+  function doomsdayComputations(y: number, m: number, d: number) {
+    y += [1, 2].includes(m) ? -1 : 0
+    const [c, u, z] = [Math.floor(y / 100), Math.floor(y / 10) % 10, y % 10]
 
-  const Computations: [string, number][] = [
-    ['Day',     d % 7],
-    ['Month',   MONTHS_DIFF[m - 1]],
-    ['Century', CENTURY[c % 4]],
-    ['Decade',  DECADE[u]],
-    ['Units',   YDIGIT[z]],
-    ['Leap',    (u % 2 != 0 && LEAPSX.includes(z) ? 1 : 0)],
-  ]
+    return [
+      ['Day',     d % 7],
+      ['Month',   MONTHS_DIFF[m - 1]],
+      ['Century', CENTURY[c % 4]],
+      ['Decade',  DECADE[u]],
+      ['Units',   UNITS[z]],
+      ['Leap',    (u % 2 != 0 && LEAPSX.includes(z) ? 1 : 0)],
+    ] as [string, number][]
+  }
+  function doomsday(y: number, m: number, d: number) {
+    return (14 + doomsdayComputations(y, m, d).map(([_, n]) => n).reduce((a,b) => a + b, 0)) % 7
+  }
+  function test() {
+    let errors = 0
+    for(let y = 1600; y <= 2100; y++) {
+      for(let m = 1; m <= 12; m++) {
+        for(let d = 1; d <= months(isLeap(y))[m - 1]; d++) {
+          if(doomsday(y, m, d) != new Date(y, m-1, d).getDay()) {
+            errors += 1
+          }
+        }
+      }
+    }
+    return errors
+  }
+  //console.log(test())
+  const Computations = doomsdayComputations(state.date.y, state.date.m, state.date.d)
 
   return (
     <ThemeProvider theme={theme}>
@@ -216,7 +234,7 @@ function App() {
             </mui.Card>
             <mui.Card>
               <mui.Table size="small">
-                {[...Array(10)].map((_, i) => <Row hideKey={[0, 1].includes(i)} hideArrVal={[0, 1, 2, 3, 6].includes(i)} underlineKey={[2,3,6,7].includes(i)} k={i} v={(i + Math.floor(i / 4)) % 7}/>)}
+                {[...Array(10)].map((_, i) => <Row hideKey={[0, 1].includes(i)} hideArrVal={[0, 1, 2, 3, 6].includes(i)} underlineKey={[2,3,6,7].includes(i)} k={i} v={UNITS[i]}/>)}
               </mui.Table>
             </mui.Card>
           </mui.Stack>
